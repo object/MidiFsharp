@@ -1,6 +1,10 @@
 ﻿#r "../packages/NAudio/lib/net35/NAudio.dll"
+#r "../packages/XPlot.GoogleCharts/lib/net45/Xplot.GoogleCharts.dll"
+
+#load "../packages/FsLab/FsLab.fsx"
 
 open NAudio.Midi
+open XPlot.GoogleCharts
 
 let file = MidiFile("./MidiFiles/feel.mid")
 
@@ -72,3 +76,7 @@ let getTrackEventsByType<'a when 'a :> MidiEvent> trackNo =
 getTrackEventsByType<NoteOnEvent> 2 |> Seq.averageBy (fun x -> (float)x.AbsoluteTime)
 
 printTrackEvents 8 10
+
+let data = file.Events |> Seq.mapi (fun i ec -> (i, Seq.length ec))
+
+Chart.Bar(data)
