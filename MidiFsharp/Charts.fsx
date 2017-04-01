@@ -59,6 +59,13 @@ module Charts =
                 (notesLengthFeatures.[3], stats.Variance)
                 (notesLengthFeatures.[4], stats.StandardDeviation)
             ])
+    
+    let getSimilarityChartData similarityMatrix (trackNames : string list) =
+        similarityMatrix
+        |> Seq.map (fun similarityVector -> 
+        similarityVector
+        |> Seq.mapi(fun i value -> 
+            (trackNames.[i], value)))
 
     let drawBarChart title trackNames data =
         data
