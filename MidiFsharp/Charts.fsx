@@ -56,6 +56,21 @@ module Charts =
                 (notesLengthFeatures.[3], stats.StandardDeviation)
             ])
 
+    let pitchChangesFeatures = [|
+        "Mean"
+        "Max"
+        "StdDev"
+    |]
+    let getPitchChangesData events = 
+        events
+        |> Seq.map (fun ec -> 
+            let stats = getPitchChangesStatistics ec
+            [
+                (notesLengthFeatures.[0], stats.Mean)
+                (notesLengthFeatures.[1], stats.Maximum)
+                (notesLengthFeatures.[2], stats.StandardDeviation)
+            ])
+
     let drawBarChart title trackNames data =
         let trackNames = trackNames |> Seq.mapi (fun i name -> sprintf "%d-%s" (i+1) name)
         data

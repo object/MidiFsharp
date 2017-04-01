@@ -33,6 +33,10 @@ module Events =
         |> getEventsByType<NoteOnEvent>
         |> Seq.filter (fun e -> not << isNull <| e.OffEvent)
 
+    let getPitchChanges (events : seq<MidiEvent>) =
+        events
+        |> getEventsByType<PitchWheelChangeEvent>
+
     let getPatches (events : seq<MidiEvent>) =
         events
         |> getEventsByType<PatchChangeEvent>
@@ -53,7 +57,7 @@ module Events =
         |> getEventsByChannel
         |> Seq.map (fun (ch, es) -> 
             match getChannelPatch es with
-            | Some patch -> getPatchFamily patch
+            | Some patch -> sprintf "%s" (getPatchName patch)
             | None -> if isDrumChannel es then "Drums" else "Unknown")
 
     let getNotesPitchStatistics (events : seq<MidiEvent>) =
@@ -66,6 +70,12 @@ module Events =
         events
         |> getNotes
         |> Seq.map (fun e -> float e.NoteLength)
+        |> fun ec -> DescriptiveStatistics(ec)
+
+    let getPitchChangesStatistics (events : seq<MidiEvent>) =
+        events
+        |> getPitchChanges
+        |> Seq.map (fun e -> float e.Pitch)
         |> fun ec -> DescriptiveStatistics(ec)
 
     let printMidiEvent (e : MidiEvent) =

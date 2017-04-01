@@ -24,3 +24,9 @@ file
 |> Seq.map snd
 |> getNotesLengthData
 |> drawBarChart "Notes Length Stats" (getTrackNames file)
+
+file
+|> getEventsByChannel
+|> Seq.map snd
+|> getPitchChangesData
+|> drawBarChart "Pitch Changes Stats" (getTrackNames file)
