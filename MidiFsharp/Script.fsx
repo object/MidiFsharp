@@ -19,7 +19,12 @@ file.Events
 file |> getTrackEventsByType<NoteOnEvent> 8 |> Seq.truncate 2 |> Seq.averageBy (fun x -> (float)x.AbsoluteTime)
 
 file |> printTrackEvents 8
+let notesRange = file.Events|> Seq.skip 1 |> Seq.mapi (fun i ec -> sprintf "%d" (i+2), ec |> getNotesRangeWidth)
+let notesAvgPitch = file.Events|> Seq.skip 1 |> Seq.mapi (fun i ec -> sprintf "%d" (i+2), ec |> getNotesAvgPitch)
+let notesAvgLength = file.Events|> Seq.skip 1 |> Seq.mapi (fun i ec -> sprintf "%d" (i+2), ec |> getNotesAvgLength)
 
-let data = file.Events |> Seq.mapi (fun i ec -> (i, Seq.length ec))
+file |> getTrackEvents 3 |> getNotesRange
 
-Chart.Bar(data)
+Chart.Bar(notesRange)
+Chart.Bar(notesAvgPitch)
+Chart.Bar(notesAvgLength)

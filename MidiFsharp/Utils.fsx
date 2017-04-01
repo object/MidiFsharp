@@ -13,14 +13,18 @@ module Utils =
         |> Seq.skip (trackNo-1)
         |> Seq.head
 
+    let getEventsByType<'a when 'a :> MidiEvent> (events : seq<MidiEvent>) =
+        events
+        |> Seq.choose (fun x-> 
+            x |> function 
+                | :? 'a as e -> Some e
+                | _ -> None)
+
     let getTrackEventsByType<'a when 'a :> MidiEvent> trackNo (file : MidiFile) =
         file.Events
         |> Seq.skip (trackNo-1)
         |> Seq.head
-        |> Seq.choose (fun x-> 
-            x |> function 
-                | :? 'a as e -> Some e 
-                | _ -> None)
+        |> getEventsByType<'a>
 
     let printMidiEvent (e : MidiEvent) =
         printfn "Event: %A (%A) on channel %A at abs/delta time %d/%d" (e.GetType()) e.CommandCode e.Channel e.AbsoluteTime e.DeltaTime
@@ -67,3 +71,35 @@ module Utils =
         |> (fun ec -> 
             printfn "%d" (ec |> Seq.length)
             ec |> Seq.iter printMidiEvent)
+
+    let getNotesRange (events : seq<MidiEvent>) =
+        events
+        |> getEventsByType<NoteOnEvent>
+        |> Seq.filter (fun e -> isNull e.OffEvent)
+        |> Seq.map (fun e -> e :> NoteEvent)
+        |> Seq.fold (fun (min,max) e -> (System.Math.Min(min, e.NoteNumber),System.Math.Max(max, e.NoteNumber))) (127,0)
+
+    let getNotesRangeWidth (events : seq<MidiEvent>) =
+        getNotesRange events
+        |> fun (min, max) -> max - min 
+
+    let getNotesMinPitch (events : seq<MidiEvent>) =
+        getNotesRange events
+        |> fst
+
+    let getNotesMaxPitch (events : seq<MidiEvent>) =
+        getNotesRange events
+        |> snd
+
+    let getNotesAvgPitch (events : seq<MidiEvent>) =
+        events
+        |> getEventsByType<NoteOnEvent>
+        |> Seq.filter (fun e -> isNull e.OffEvent)
+        |> Seq.map (fun e -> e :> NoteEvent)
+        |> Seq.averageBy (fun e -> float e.NoteNumber)
+
+    let getNotesAvgLength (events : seq<MidiEvent>) =
+        events
+        |> getEventsByType<NoteOnEvent>
+        |> Seq.filter (fun e -> not (isNull e.OffEvent))
+        |> Seq.averageBy (fun e -> float e.NoteLength)
