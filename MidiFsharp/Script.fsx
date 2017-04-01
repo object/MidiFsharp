@@ -29,3 +29,4 @@ file.Events
 |> Seq.skip 1
 |> getNotesLengthData
 |> drawBarChart "Notes Length Stats" trackNames
+

@@ -24,7 +24,6 @@ module Charts =
         "Mean"
         "Min"
         "Max"
-        "Variance"
         "StdDev"
     |]
 
@@ -37,15 +36,13 @@ module Charts =
                 (notePitchFeatures.[1], stats.Mean)
                 (notePitchFeatures.[2], stats.Minimum)
                 (notePitchFeatures.[3], stats.Maximum)
-                (notePitchFeatures.[4], stats.Variance)
-                (notePitchFeatures.[5], stats.StandardDeviation)
+                (notePitchFeatures.[4], stats.StandardDeviation)
             ])
 
     let notesLengthFeatures = [|
         "Mean"
         "Min"
         "Max"
-        "Variance"
         "StdDev"
     |]
     let getNotesLengthData events = 
@@ -56,8 +53,7 @@ module Charts =
                 (notesLengthFeatures.[0], stats.Mean)
                 (notesLengthFeatures.[1], stats.Minimum)
                 (notesLengthFeatures.[2], stats.Maximum)
-                (notesLengthFeatures.[3], stats.Variance)
-                (notesLengthFeatures.[4], stats.StandardDeviation)
+                (notesLengthFeatures.[3], stats.StandardDeviation)
             ])
 
     let drawBarChart title trackNames data =
