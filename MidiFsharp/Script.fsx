@@ -6,26 +6,27 @@ open NAudio.Midi
 
 #load "Events.fsx"
 #load "Charts.fsx"
+#load "Patches.fsx"
+
 open Midi.FSharp
 
-let file = MidiFile("./MidiFiles/feel.mid")
+let file = MidiFile("./MidiFiles/Feel.mid")
+//let file = MidiFile("./MidiFiles/HotelCalifornia.mid")
 
-let trackNames = [
-    "Piano 1"
-    "Bass"
-    "Strings"
-    "El.Guitar"
-    "Piano 2"
-    "Cymbal"
-    "Drums"
-]
-
-file.Events
-|> Seq.skip 1
+file
+|> getEventsByChannel
+|> Seq.map snd
 |> getNotesPitchData
-|> drawBarChart "Notes Pitch Stats" trackNames
+|> drawBarChart "Notes Pitch Stats" (getTrackNames file)
 
-file.Events
-|> Seq.skip 1
+file
+|> getEventsByChannel
+|> Seq.map snd
 |> getNotesLengthData
-|> drawBarChart "Notes Length Stats" trackNames
+|> drawBarChart "Notes Length Stats" (getTrackNames file)
+
+file
+|> getEventsByChannel
+|> Seq.map snd
+|> getPitchChangesData
+|> drawBarChart "Pitch Changes Stats" (getTrackNames file)

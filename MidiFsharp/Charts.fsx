@@ -24,7 +24,6 @@ module Charts =
         "Mean"
         "Min"
         "Max"
-        "Variance"
         "StdDev"
     |]
 
@@ -37,15 +36,13 @@ module Charts =
                 (notePitchFeatures.[1], stats.Mean)
                 (notePitchFeatures.[2], stats.Minimum)
                 (notePitchFeatures.[3], stats.Maximum)
-                (notePitchFeatures.[4], stats.Variance)
-                (notePitchFeatures.[5], stats.StandardDeviation)
+                (notePitchFeatures.[4], stats.StandardDeviation)
             ])
 
     let notesLengthFeatures = [|
         "Mean"
         "Min"
         "Max"
-        "Variance"
         "StdDev"
     |]
     let getNotesLengthData events = 
@@ -56,8 +53,22 @@ module Charts =
                 (notesLengthFeatures.[0], stats.Mean)
                 (notesLengthFeatures.[1], stats.Minimum)
                 (notesLengthFeatures.[2], stats.Maximum)
-                (notesLengthFeatures.[3], stats.Variance)
-                (notesLengthFeatures.[4], stats.StandardDeviation)
+                (notesLengthFeatures.[3], stats.StandardDeviation)
+            ])
+
+    let pitchChangesFeatures = [|
+        "Mean"
+        "Max"
+        "StdDev"
+    |]
+    let getPitchChangesData events = 
+        events
+        |> Seq.map (fun ec -> 
+            let stats = getPitchChangesStatistics ec
+            [
+                (notesLengthFeatures.[0], stats.Mean)
+                (notesLengthFeatures.[1], stats.Maximum)
+                (notesLengthFeatures.[2], stats.StandardDeviation)
             ])
     
     let getSimilarityChartData similarityMatrix (trackNames : string list) =
@@ -68,6 +79,7 @@ module Charts =
             (trackNames.[i], value)))
 
     let drawBarChart title trackNames data =
+        let trackNames = trackNames |> Seq.mapi (fun i name -> sprintf "%d-%s" (i+1) name)
         data
         |> Chart.Combo
         |> Chart.WithOptions (
