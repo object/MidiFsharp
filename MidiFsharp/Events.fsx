@@ -6,6 +6,8 @@
 #r "MathNet.Numerics.dll"
 #r "MathNet.Numerics.FSharp.dll"
 
+#load "Patches.fsx"
+
 namespace Midi.FSharp
 
 [<AutoOpen>]
@@ -14,11 +16,11 @@ module Events =
     open NAudio.Midi
     open MathNet.Numerics.Statistics
 
-    let getTrackEvents trackNo (file : MidiFile) =
+    let getEventsByChannel (file : MidiFile) =
         file.Events
-        |> Seq.skip (trackNo-1)
-        |> Seq.head
-
+        |> Seq.concat
+        |> Seq.groupBy (fun e -> e.Channel)
+ 
     let getEventsByType<'a when 'a :> MidiEvent> (events : seq<MidiEvent>) =
         events
         |> Seq.choose (fun x-> 
@@ -26,16 +28,33 @@ module Events =
                 | :? 'a as e -> Some e
                 | _ -> None)
 
-    let getTrackEventsByType<'a when 'a :> MidiEvent> trackNo (file : MidiFile) =
-        file.Events
-        |> Seq.skip (trackNo-1)
-        |> Seq.head
-        |> getEventsByType<'a>
-
     let getNotes (events : seq<MidiEvent>) =
         events
         |> getEventsByType<NoteOnEvent>
         |> Seq.filter (fun e -> not << isNull <| e.OffEvent)
+
+    let getPatches (events : seq<MidiEvent>) =
+        events
+        |> getEventsByType<PatchChangeEvent>
+
+    let isDrumChannel (events : seq<MidiEvent>) =
+        (not << Seq.isEmpty) events && events |> Seq.head |> fun x -> x.Channel = 10 
+
+    let getChannelPatch (events : seq<MidiEvent>) =
+        events
+        |> getPatches
+        |> fun x -> if Seq.isEmpty x then 
+                        None
+                    else
+                        Seq.head x |> fun y -> Some y.Patch
+
+    let getTrackNames file =
+        file 
+        |> getEventsByChannel
+        |> Seq.map (fun (ch, es) -> 
+            match getChannelPatch es with
+            | Some patch -> getPatchFamily patch
+            | None -> if isDrumChannel es then "Drums" else "Unknown")
 
     let getNotesPitchStatistics (events : seq<MidiEvent>) =
         events
@@ -87,10 +106,3 @@ module Events =
         | _ ->
             printfn "\t UNKNOWN EVENT"
             printfn "\tAbsolute/delta time: %d/%d" e.AbsoluteTime e.DeltaTime
-
-    let printTrackEvents trackNo (file : MidiFile) =
-        file
-        |> getTrackEvents trackNo
-        |> (fun ec -> 
-            printfn "%d" (ec |> Seq.length)
-            ec |> Seq.iter printMidiEvent)

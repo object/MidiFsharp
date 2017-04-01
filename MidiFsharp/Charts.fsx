@@ -57,6 +57,7 @@ module Charts =
             ])
 
     let drawBarChart title trackNames data =
+        let trackNames = trackNames |> Seq.mapi (fun i name -> sprintf "%d-%s" (i+1) name)
         data
         |> Chart.Combo
         |> Chart.WithOptions (
