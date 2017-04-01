@@ -1,12 +1,18 @@
 #I "../packages/NAudio/lib/net35"
-#r "NAudio.dll"
+#I "../packages/MathNet.Numerics/lib/net40"
+#I "../packages/MathNet.Numerics.FSharp/lib/net40"
 
-namespace Midi.Utils
+#r "NAudio.dll"
+#r "MathNet.Numerics.dll"
+#r "MathNet.Numerics.FSharp.dll"
+
+namespace Midi.FSharp
 
 [<AutoOpen>]
-module Utils =
+module Events =
 
     open NAudio.Midi
+    open MathNet.Numerics.Statistics
 
     let getTrackEvents trackNo (file : MidiFile) =
         file.Events
@@ -25,6 +31,23 @@ module Utils =
         |> Seq.skip (trackNo-1)
         |> Seq.head
         |> getEventsByType<'a>
+
+    let getNotes (events : seq<MidiEvent>) =
+        events
+        |> getEventsByType<NoteOnEvent>
+        |> Seq.filter (fun e -> not << isNull <| e.OffEvent)
+
+    let getNotesPitchStatistics (events : seq<MidiEvent>) =
+        events
+        |> getNotes
+        |> Seq.map (fun e -> float e.NoteNumber)
+        |> fun ec -> DescriptiveStatistics(ec)
+
+    let getNotesLengthStatistics (events : seq<MidiEvent>) =
+        events
+        |> getNotes
+        |> Seq.map (fun e -> float e.NoteLength)
+        |> fun ec -> DescriptiveStatistics(ec)
 
     let printMidiEvent (e : MidiEvent) =
         printfn "Event: %A (%A) on channel %A at abs/delta time %d/%d" (e.GetType()) e.CommandCode e.Channel e.AbsoluteTime e.DeltaTime
@@ -71,35 +94,3 @@ module Utils =
         |> (fun ec -> 
             printfn "%d" (ec |> Seq.length)
             ec |> Seq.iter printMidiEvent)
-
-    let getNotesRange (events : seq<MidiEvent>) =
-        events
-        |> getEventsByType<NoteOnEvent>
-        |> Seq.filter (fun e -> isNull e.OffEvent)
-        |> Seq.map (fun e -> e :> NoteEvent)
-        |> Seq.fold (fun (min,max) e -> (System.Math.Min(min, e.NoteNumber),System.Math.Max(max, e.NoteNumber))) (127,0)
-
-    let getNotesRangeWidth (events : seq<MidiEvent>) =
-        getNotesRange events
-        |> fun (min, max) -> max - min 
-
-    let getNotesMinPitch (events : seq<MidiEvent>) =
-        getNotesRange events
-        |> fst
-
-    let getNotesMaxPitch (events : seq<MidiEvent>) =
-        getNotesRange events
-        |> snd
-
-    let getNotesAvgPitch (events : seq<MidiEvent>) =
-        events
-        |> getEventsByType<NoteOnEvent>
-        |> Seq.filter (fun e -> isNull e.OffEvent)
-        |> Seq.map (fun e -> e :> NoteEvent)
-        |> Seq.averageBy (fun e -> float e.NoteNumber)
-
-    let getNotesAvgLength (events : seq<MidiEvent>) =
-        events
-        |> getEventsByType<NoteOnEvent>
-        |> Seq.filter (fun e -> not (isNull e.OffEvent))
-        |> Seq.averageBy (fun e -> float e.NoteLength)
