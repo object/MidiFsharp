@@ -78,6 +78,50 @@ module Events =
         |> Seq.map (fun e -> float e.Pitch)
         |> fun ec -> DescriptiveStatistics(ec)
 
+    let private getIntervalDistributions intervals =
+        let getSplitPoints intervals =
+            let rec splitIntervals intervals =
+                match intervals with
+                | [] -> []
+                | (x,y)::tail -> x::y::splitIntervals tail
+            intervals
+            |> splitIntervals
+            |> List.sort
+            |> Set.ofList
+            |> Set.toList
+
+        let getSplitPointsWeights intervals points =
+            let within (x, y) v = v >= x && v < y
+            points
+            |> List.map (fun pt -> 
+                (pt, intervals |> List.fold (fun acc (x,y) -> 
+                    if pt |> within (x,y) then acc+1 else acc) 0))
+        
+        let intervals = intervals |> Seq.toList
+        let points = 
+            intervals
+            |> Seq.toList
+            |> getSplitPoints
+        let weightedPoints = getSplitPointsWeights intervals points
+        points
+        |> List.pairwise
+        |> List.map (fun (x,y) -> ((x,y), weightedPoints |> List.find (fun (p,w) -> p = x) |> fun (p,w) -> w))
+        |> List.filter (fun (_, w) -> w <> 0)
+        |> List.toSeq
+
+    let getNotesPolyphony (events : seq<MidiEvent>) =
+        events
+        |> getNotes
+        |> Seq.sortBy (fun e -> e.AbsoluteTime)
+        |> Seq.map (fun e -> (e.AbsoluteTime, e.AbsoluteTime+(int64 e.NoteLength)))
+        |> getIntervalDistributions
+
+    let getNotesPolyphonyStatistics (events : seq<MidiEvent>) =
+        events
+        |> getNotesPolyphony
+        |> Seq.map (fun ((x,y),w) -> float w)
+        |> fun ec -> DescriptiveStatistics(ec)
+
     let printMidiEvent (e : MidiEvent) =
         printfn "Event: %A (%A) on channel %A at abs/delta time %d/%d" (e.GetType()) e.CommandCode e.Channel e.AbsoluteTime e.DeltaTime
         match e with

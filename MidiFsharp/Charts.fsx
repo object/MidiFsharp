@@ -71,9 +71,27 @@ module Charts =
                 (notesLengthFeatures.[2], stats.StandardDeviation)
             ])
 
+    let notesPolyphonyFeatures = [|
+        "Mean"
+        "Min"
+        "Max"
+        "StdDev"
+    |]
+    let getNotesPolyphonyData events = 
+        events
+        |> Seq.map (fun ec -> 
+            let stats = getNotesPolyphonyStatistics ec
+            [
+                (notesLengthFeatures.[0], stats.Mean)
+                (notesLengthFeatures.[1], stats.Minimum)
+                (notesLengthFeatures.[2], stats.Maximum)
+                (notesLengthFeatures.[3], stats.StandardDeviation)
+            ])
+
     let drawBarChart title trackNames data =
         let trackNames = trackNames |> Seq.mapi (fun i name -> sprintf "%d-%s" (i+1) name)
         data
+        |> Seq.toList
         |> Chart.Combo
         |> Chart.WithOptions (
             Options(

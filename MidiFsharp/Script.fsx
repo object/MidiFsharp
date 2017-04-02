@@ -30,3 +30,9 @@ file
 |> Seq.map snd
 |> getPitchChangesData
 |> drawBarChart "Pitch Changes Stats" (getTrackNames file)
+
+file
+|> getEventsByChannel
+|> Seq.map snd
+|> getNotesPolyphonyData
+|> drawBarChart "Notes Polyphony Stats" (getTrackNames file)
