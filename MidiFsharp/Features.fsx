@@ -3,7 +3,7 @@
 #r "MathNet.Numerics.dll"
 #r "MathNet.Numerics.FSharp.dll"
 
-namespace Midi.Features
+namespace Midi.FSharp
 
 [<AutoOpen>]
 module Features =
